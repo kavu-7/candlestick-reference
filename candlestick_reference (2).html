@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>The Trading Desk — Candlestick Pattern Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:#080808;
+  background-image:radial-gradient(ellipse at 20% 0%,rgba(201,168,64,.05) 0%,transparent 60%),
+                   radial-gradient(ellipse at 80% 100%,rgba(201,168,64,.03) 0%,transparent 60%);
+  color:#d8d4c8;
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  line-height:1.5
+}
+
+/* ── HEADER ── */
+header{
+  padding:1.1rem 2rem .9rem;
+  background:rgba(8,8,8,.97);
+  border-bottom:1px solid #1e1c17;
+  position:sticky;top:0;z-index:200;
+  backdrop-filter:blur(20px)
+}
+.hrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:.8rem}
+.logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:700;
+  color:#c9a840;letter-spacing:.08em;
+  text-shadow:0 0 40px rgba(201,168,64,.3);
+  white-space:nowrap
+}
+.logo sub{
+  font-size:9px;font-family:'DM Mono',monospace;
+  color:#9a8e70;letter-spacing:.14em;
+  vertical-align:middle;margin-left:5px
+}
+.search-wrap{flex:1;max-width:300px;position:relative}
+.search-wrap svg{
+  position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  width:13px;height:13px;stroke:#5a5442;fill:none;stroke-width:2;stroke-linecap:round
+}
+#search{
+  width:100%;background:#111008;
+  border:1px solid #2a2618;color:#e8e4d8;
+  font-family:'DM Mono',monospace;font-size:12px;
+  padding:8px 10px 8px 32px;border-radius:4px;outline:none;
+  transition:border-color .2s,box-shadow .2s;letter-spacing:.02em
+}
+#search:focus{border-color:#c9a840;box-shadow:0 0 0 3px rgba(201,168,64,.08)}
+#search::placeholder{color:#3a3628}
+.ctrl{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.sp{width:1px;height:16px;background:#1e1c17;flex-shrink:0;margin:0 3px}
+.btn{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;
+  padding:5px 14px;border-radius:3px;
+  border:1px solid #222018;background:transparent;
+  color:#9a9070;cursor:pointer;transition:all .15s;white-space:nowrap
+}
+.btn:hover{color:#d8d4c8;border-color:#4a4436}
+.btn.on-all{background:rgba(201,168,64,.08);border-color:rgba(201,168,64,.35);color:#c9a840}
+.btn.on-bull{background:rgba(52,168,83,.08);border-color:rgba(52,168,83,.3);color:#34a853}
+.btn.on-bear{background:rgba(220,53,69,.08);border-color:rgba(220,53,69,.3);color:#dc3545}
+.btn.on-neut{background:rgba(184,147,62,.07);border-color:rgba(184,147,62,.28);color:#c9a840}
+.btn.on-sort{background:rgba(100,130,200,.08);border-color:rgba(100,130,200,.3);color:#7a9de8}
+
+/* ── STAT BAR ── */
+#statbar{
+  display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;
+  padding:.5rem 2rem;border-bottom:1px solid #141210;
+  background:#060606;font-size:11px
+}
+.si{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;letter-spacing:.05em;color:#b0a888}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.si-count{margin-left:auto;color:#6a6050;font-family:'DM Mono',monospace;font-size:10px}
+
+/* ── GRID — 4 columns max ── */
+.gw{padding:1.4rem 2rem 3rem}
+#grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px
+}
+@media(max-width:1100px){#grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:780px){#grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){#grid{grid-template-columns:1fr}}
+
+/* ── FLIP CARD ── */
+.card{height:430px;perspective:1200px;cursor:pointer}
+.ci{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+.card.flipped .ci{transform:rotateY(180deg)}
+.cf{
+  position:absolute;inset:0;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:10px;background:#0e0d0a;
+  display:flex;flex-direction:column;overflow:hidden
+}
+.cb{transform:rotateY(180deg);overflow-y:auto;padding:14px 15px 10px;display:block}
+
+.cbull{border:1px solid #1e2e1e;border-top:3px solid #34a853}
+.cbear{border:1px solid #2e1a1a;border-top:3px solid #dc3545}
+.cneut{border:1px solid #2a2618;border-top:3px solid #c9a840}
+.card:hover .cbull{box-shadow:0 6px 36px rgba(52,168,83,.12),0 0 0 1px rgba(52,168,83,.14)}
+.card:hover .cbear{box-shadow:0 6px 36px rgba(220,53,69,.12),0 0 0 1px rgba(220,53,69,.14)}
+.card:hover .cneut{box-shadow:0 6px 36px rgba(201,168,64,.1),0 0 0 1px rgba(201,168,64,.12)}
+
+/* ── FRONT ── */
+.ftop{padding:14px 15px 6px;flex-shrink:0}
+.fmid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 14px;gap:10px}
+.fbot{padding:9px 15px 13px;border-top:1px solid #181610;flex-shrink:0}
+
+.bgs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.bg{
+  font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.1em;
+  padding:3px 9px;border-radius:2px;line-height:1.6;border:1px solid transparent
+}
+.bgb{background:rgba(52,168,83,.09);color:#5fce7f;border-color:rgba(52,168,83,.25)}
+.bgr{background:rgba(220,53,69,.09);color:#f06472;border-color:rgba(220,53,69,.25)}
+.bgn{background:rgba(201,168,64,.08);color:#d4ad4a;border-color:rgba(201,168,64,.25)}
+.bgs1{background:rgba(100,130,200,.07);color:#7a9de8;border-color:rgba(100,130,200,.22)}
+.bgm{background:rgba(168,100,200,.07);color:#c07ae8;border-color:rgba(168,100,200,.22)}
+
+.cname{
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;font-weight:600;
+  color:#f0ece0;letter-spacing:.02em;line-height:1.2
+}
+.prior{font-size:10px;color:#9a9070;margin-top:3px;letter-spacing:.04em;font-family:'DM Mono',monospace}
+
+.ohlc{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%}
+.oc{background:#0a0908;border:1px solid #1e1c17;border-radius:4px;padding:5px 3px;text-align:center}
+.ol{font-size:8px;color:#7a7060;display:block;margin-bottom:2px;letter-spacing:.1em;font-family:'DM Mono',monospace}
+.ov{font-size:11px;font-weight:500;color:#d8d4c8;font-family:'DM Mono',monospace}
+
+.rrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.rlbl{font-size:10px;color:#8a7e60;letter-spacing:.06em;font-family:'DM Mono',monospace}
+.rpct{font-family:'DM Mono',monospace;font-size:14px;font-weight:500}
+.rbar{height:2px;background:#141210;border-radius:1px;overflow:hidden;margin-bottom:6px}
+.rbar-fill{height:100%;border-radius:1px}
+.fhint{font-size:9px;color:#6a6050;text-align:right;letter-spacing:.08em;font-family:'DM Mono',monospace;font-style:italic}
+
+/* ── BACK ── */
+.blbl{
+  font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.12em;
+  color:#c9a840;margin:10px 0 5px;text-transform:uppercase
+}
+.blbl:first-child{margin-top:0}
+.clist{list-style:none}
+.clist li{
+  font-size:10.5px;line-height:1.6;color:#c0bc9e;
+  padding:2px 0 2px 14px;position:relative
+}
+.clist li::before{content:"—";position:absolute;left:0;top:2px;font-size:9px;color:#6a6040}
+
+.sgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:5px 0}
+.sc{border-radius:5px;padding:9px 7px;text-align:center}
+.sc-e{background:#0e120e;border:1px solid #223022}
+.sc-s{background:#120e0e;border:1px solid #301a1a}
+.sc-t{background:#120f08;border:1px solid #2e2410}
+.sclbl{font-size:8px;font-family:'DM Mono',monospace;letter-spacing:.1em;display:block;margin-bottom:4px}
+.sc-e .sclbl{color:#5fce7f}
+.sc-s .sclbl{color:#f06472}
+.sc-t .sclbl{color:#d4ad4a}
+.scval{font-size:10px;line-height:1.5;color:#e8e4d8;font-weight:500;font-family:'DM Mono',monospace}
+
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:5px 0}
+.rc{border-radius:5px;padding:9px 10px}
+.rct{background:#0a100a;border:1px solid #1e2e1e}
+.rca{background:#0c0c12;border:1px solid #1e1e2e}
+.rclbl{font-size:8.5px;font-family:'DM Mono',monospace;font-weight:500;display:block;margin-bottom:4px;letter-spacing:.07em}
+.rct .rclbl{color:#5fce7f}
+.rca .rclbl{color:#7a9de8}
+.rcval{font-size:10px;line-height:1.5;color:#c0bc9e}
+
+.tfs{display:flex;gap:4px;flex-wrap:wrap;margin:5px 0}
+.tfb{
+  font-size:9px;padding:3px 10px;border-radius:2px;font-family:'DM Mono',monospace;
+  background:#0e0d0a;border:1px solid #2a2618;color:#b0a278;letter-spacing:.06em
+}
+
+/* ── CALCULATOR ── */
+.calc{
+  background:#0a0908;border:1px solid #222018;
+  border-radius:6px;padding:11px 12px;margin-top:8px
+}
+.calc-hdr{
+  font-size:9px;font-family:'DM Mono',monospace;color:#c9a840;
+  letter-spacing:.12em;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;text-transform:uppercase
+}
+.calc-hdr::before,.calc-hdr::after{content:"";flex:1;height:1px;background:#222018}
+.calc-note{
+  font-size:10px;color:#b0a888;margin-bottom:10px;
+  line-height:1.7;font-family:'DM Mono',monospace;
+  background:#0c0b08;border:1px solid #2a2618;
+  border-radius:4px;padding:8px 10px
+}
+.inp-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.inp-wrap{display:flex;flex-direction:column;gap:3px}
+.inp-wrap label{font-size:9px;color:#9a9070;font-family:'DM Mono',monospace;letter-spacing:.1em}
+.cinp{
+  background:#0c0b08;border:1px solid #222018;
+  color:#f0ece0;font-family:'DM Mono',monospace;font-size:12px;
+  padding:7px 9px;border-radius:4px;outline:none;
+  transition:border-color .15s;width:100%
+}
+.cinp:focus{border-color:#c9a840;box-shadow:0 0 0 2px rgba(201,168,64,.08)}
+.cinp::placeholder{color:#2e2c20;font-size:10px}
+.cbtn{
+  width:100%;margin-top:4px;
+  background:rgba(201,168,64,.09);border:1px solid rgba(201,168,64,.3);
+  color:#d4b84a;font-family:'DM Mono',monospace;font-size:10px;
+  padding:8px;border-radius:4px;cursor:pointer;letter-spacing:.12em;
+  transition:all .15s;text-transform:uppercase;font-weight:500
+}
+.cbtn:hover{background:rgba(201,168,64,.15);box-shadow:0 0 16px rgba(201,168,64,.1)}
+
+/* ── RESULTS ── */
+.cres{margin-top:10px;display:none;flex-direction:column;gap:4px}
+.res-section{margin-bottom:6px}
+.res-section-lbl{
+  font-size:9px;font-family:'DM Mono',monospace;
+  letter-spacing:.12em;color:#8a7e62;
+  padding-bottom:4px;margin-bottom:4px;
+  border-bottom:1px solid #222018;text-transform:uppercase
+}
+.res-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;border-radius:4px;margin-bottom:3px
+}
+.res-row.entry-row{background:#0e120c;border:1px solid #283020}
+.res-row.sl-row{background:#120c0c;border:1px solid #301818}
+.res-row.t1-row{background:#0d1009;border:1px solid #1e2814}
+.res-row.t2-row{background:#0e1209;border:1px solid #223016}
+.res-row.t3-row{background:#0f1209;border:1px solid #263418}
+.res-row.t4-row{background:#101309;border:1px solid #2a381a}
+.res-left{display:flex;flex-direction:column;gap:2px}
+.res-tag{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.08em;font-weight:500}
+.entry-row .res-tag{color:#9ad890}
+.sl-row .res-tag{color:#f09898}
+.t1-row .res-tag,.t2-row .res-tag,.t3-row .res-tag,.t4-row .res-tag{color:#a0c090}
+.res-desc{font-size:9px;color:#8a8068;font-family:'DM Mono',monospace}
+.res-val{font-size:16px;font-weight:600;font-family:'DM Mono',monospace;text-align:right}
+.entry-row .res-val{color:#c8f0a0}
+.sl-row .res-val{color:#ff9090}
+.t1-row .res-val{color:#90d890}
+.t2-row .res-val{color:#a0e490}
+.t3-row .res-val{color:#b0ee90}
+.t4-row .res-val{color:#c0f890}
+.res-rr{font-size:9px;color:#6a6450;font-family:'DM Mono',monospace;text-align:right;margin-top:1px}
+
+.bkhint{
+  font-size:9px;color:#6a6050;text-align:center;
+  margin-top:10px;padding-top:8px;border-top:1px solid #1e1c14;
+  letter-spacing:.08em;font-family:'DM Mono',monospace
+}
+.nores{
+  grid-column:1/-1;text-align:center;
+  padding:5rem;color:#3a3428;font-size:16px;
+  font-family:'Cormorant Garamond',serif;letter-spacing:.04em
+}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#222018;border-radius:2px}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:1.8rem 1rem;
+  font-size:11px;color:#7a7060;
+  border-top:1px solid #1a1810;
+  letter-spacing:.05em;line-height:2.2;
+  font-family:'DM Mono',monospace
+}
+footer span{color:#c9a840}
+footer a{color:#7a9de8;text-decoration:none}
+footer a:hover{color:#a0bdf0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="logo">The Trading Desk<sub>CANDLESTICK REFERENCE</sub></div>
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search" placeholder="search pattern..." autocomplete="off" spellcheck="false">
+    </div>
+  </div>
+  <div class="ctrl" id="ctrl">
+    <button class="btn on-all" data-cat="all">ALL</button>
+    <button class="btn" data-cat="single">SINGLE CANDLE</button>
+    <button class="btn" data-cat="multi">MULTI CANDLE</button>
+    <div class="sp"></div>
+    <button class="btn on-all" data-dir="all">ALL</button>
+    <button class="btn" data-dir="b">BULLISH</button>
+    <button class="btn" data-dir="r">BEARISH</button>
+    <button class="btn" data-dir="n">NEUTRAL</button>
+    <div class="sp"></div>
+    <button class="btn" id="srt">SORT BY RELIABILITY &#x25BC;</button>
+  </div>
+</header>
+
+<div id="statbar"></div>
+<div class="gw"><div id="grid"></div></div>
+
+<footer>
+  <span>IMPORTANT</span> — Patterns are entry signals, not complete trading systems.<br>
+  Always combine with:&nbsp; Support &amp; Resistance &nbsp;&middot;&nbsp; Volume &nbsp;&middot;&nbsp; RSI / MACD &nbsp;&middot;&nbsp; Trend Structure &nbsp;&middot;&nbsp; Market Context<br>
+  <span>The Trading Desk</span> &mdash; Built for study &amp; paper trading reference
+</footer>
+
+<script>
+var GR="#34a853",RD="#dc3545",GY="#8a8672";
+
+function buildSVG(cs){
+  var n=cs.length;
+  var cw=n===1?50:n===2?50:36,gap=n===1?0:10;
+  var sh=88,pd=7,W=n*cw+(n-1)*gap;
+  var gH=Math.max.apply(null,cs.map(function(c){return c[1]}));
+  var gL=Math.min.apply(null,cs.map(function(c){return c[2]}));
+  var rng=gH-gL||1;
+  function y(v){return(pd+(1-(v-gL)/rng)*(sh-2*pd)).toFixed(2)}
+  var s="";
+  cs.forEach(function(c,i){
+    var x0=i*(cw+gap),cx=(x0+cw/2).toFixed(1);
+    var bw=(cw*.54).toFixed(1),bx=(x0+cw/2-cw*.27).toFixed(1);
+    var yH=y(c[1]),yL=y(c[2]),yO=y(c[0]),yC=y(c[3]);
+    var bt=Math.min(+yO,+yC).toFixed(2);
+    var bh=Math.max(3,Math.abs(+yO-+yC)).toFixed(2);
+    var col=c[4]==="b"?GR:c[4]==="r"?RD:GY;
+    s+="<line x1='"+cx+"' y1='"+yH+"' x2='"+cx+"' y2='"+yL+"' stroke='"+col+"' stroke-width='1.6' stroke-linecap='round'/>";
+    s+="<rect x='"+bx+"' y='"+bt+"' width='"+bw+"' height='"+bh+"' fill='"+col+"' rx='1.5'/>";
+  });
+  return "<svg viewBox='0 0 "+W+" "+sh+"' style='height:"+sh+"px;width:auto;display:block'>"+s+"</svg>";
+}
+
+var P=[
+{id:"bmar",n:"Bullish Marubozu",cat:"single",dir:"b",prior:"Uptrend / After pullback",rel:56,tf:["4H","Daily"],
+ cs:[[100,108,100,108,"b"]],
+ ohlc:[["O","100"],["H","108"],["L","100"],["C","108"]],
+ conds:["Open = Low (100), Close = High (108) — zero wicks on either side","Full green body: buyers controlled every single tick","Works as trend continuation — not reliable as reversal (56%)","Volume spike on this candle confirms the conviction"],
+ entry:"Buy at close ₹108 or breakout above ₹108",sl:"Below ₹100 (candle low = open)",tgt:"Next resistance level | Min 1:2 R:R",
+ rt:"Buy at candle close same session — early entry",ra:"Enter next day only if price holds above ₹108 on open",
+ calcNote:"SL = your LOW input.  Entry = your CLOSE input.",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — Scalp / Quick exit","T2 — Partial book","T3 — Standard target","T4 — Trailing stop zone"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"bemar",n:"Bearish Marubozu",cat:"single",dir:"r",prior:"Downtrend",rel:53,tf:["4H","Daily"],
+ cs:[[108,108,100,100,"r"]],
+ ohlc:[["O","108"],["H","108"],["L","100"],["C","100"]],
+ conds:["Open = High (108), Close = Low (100) — zero wicks on either side","Full red body: sellers controlled every single tick","Works as trend continuation — near random as reversal (53%)","High volume on this candle confirms sustained selling"],
+ entry:"Short at close ₹100 or breakdown below ₹100",sl:"Above ₹108 (candle high = open)",tgt:"Next support level | Min 1:2 R:R",
+ rt:"Short at candle close same session — early entry",ra:"Enter next day only if price holds below ₹100 on open",
+ calcNote:"SL = your HIGH input.  Entry = your CLOSE input.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Scalp / Quick exit","T2 — Partial book","T3 — Standard target","T4 — Trailing stop zone"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"ham",n:"Hammer",cat:"single",dir:"b",prior:"Downtrend (essential)",rel:65,tf:["4H","Daily"],
+ cs:[[104,106,95,103,"b"]],
+ ohlc:[["O","104"],["H","106"],["L","95"],["C","103"]],
+ conds:["Lower wick ≥ 2× body length (wick = 9pts, body = 1pt here)","Small body sits at the top of the full candle range","Little or no upper wick — buyers recovered strongly by close","Downtrend context is mandatory — same shape in uptrend = Hanging Man"],
+ entry:"Above hammer high ₹106, or at close ₹103",sl:"Below ₹95 (wick low — full protective stop)",tgt:"Prior resistance above | Min 2:1 R:R",
+ rt:"Buy at candle close ₹103 same day",ra:"Buy only after next candle closes bullish above ₹106",
+ calcNote:"SL = your LOW input.  Entry = your CLOSE input.",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial book","T3 — Prior resistance","T4 — Full target / trail"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"hman",n:"Hanging Man",cat:"single",dir:"r",prior:"Uptrend (essential)",rel:41,tf:["Daily"],
+ cs:[[152,154,143,151,"r"]],
+ ohlc:[["O","152"],["H","154"],["L","143"],["C","151"]],
+ conds:["Identical shape to Hammer — context changes the meaning entirely","Lower wick ≥ 2× body: sellers pushed price deep intraday","Buyers barely recovered to close — a warning shot, not a confirm","Very weak signal (41%) — next day confirmation is non-negotiable"],
+ entry:"Break below ₹143 after next-day bearish confirmation",sl:"Above ₹154 (candle high)",tgt:"Next support | Tight 1:1 target due to low reliability",
+ rt:"Short at candle close ₹151 with tight SL",ra:"Short only after next red candle breaks below ₹143",
+ calcNote:"SL = your HIGH input.  Entry = your CLOSE input.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial book","T3 — Standard","T4 — Aggressive"],
+ tgtRR:[0.8,1.5,2,2.5]},
+
+{id:"ss",n:"Shooting Star",cat:"single",dir:"r",prior:"Uptrend (essential)",rel:59,tf:["4H","Daily"],
+ cs:[[150,162,149,151,"r"]],
+ ohlc:[["O","150"],["H","162"],["L","149"],["C","151"]],
+ conds:["Upper wick ≥ 2× body (wick = 11pts, body = 1pt here)","Small body sits near the bottom of the candle range","Little or no lower wick — sellers crushed the intraday rally","Price hit ₹162 intraday; sellers forced close back down to ₹151"],
+ entry:"Break below ₹149 (candle low)",sl:"Above ₹162 (wick high)",tgt:"Next support zone below | Min 1:2 R:R",
+ rt:"Short at candle close ₹151 same day",ra:"Short only after next candle closes below ₹149",
+ calcNote:"SL = your HIGH input.  Entry = your LOW input (break of low).",
+ slSrc:"H",entrySrc:"L",tgtDir:-1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial book","T3 — Prior support","T4 — Extended move"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"ih",n:"Inverted Hammer",cat:"single",dir:"b",prior:"Downtrend (essential)",rel:35,tf:["Daily"],
+ cs:[[98,108,97,99,"b"]],
+ ohlc:[["O","98"],["H","108"],["L","97"],["C","99"]],
+ conds:["Upper wick ≥ 2× body — identical shape to Shooting Star","Bulls pushed to ₹108 intraday but couldn't sustain the close","Appears after a downtrend — bullish ATTEMPT, not confirmation","Weakest pattern (35%) — next day confirmation is non-negotiable"],
+ entry:"Above ₹108 on next day breakout confirmation",sl:"Below ₹97 (wick low)",tgt:"Prior resistance | Min 1.5:1 given low reliability",
+ rt:"Buy at D2 open if gap-up above ₹108",ra:"Buy only after D2 closes bullish above ₹108 with volume",
+ calcNote:"SL = your LOW input.  Entry = your HIGH input (confirmation above high).",
+ slSrc:"L",entrySrc:"H",tgtDir:1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial book","T3 — Prior resistance","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,2.5]},
+
+{id:"doji",n:"Doji",cat:"single",dir:"n",prior:"Any trend — indecision point",rel:50,tf:["Daily","Weekly"],
+ cs:[[120,127,113,120,"n"]],
+ ohlc:[["O","120"],["H","127"],["L","113"],["C","120"]],
+ conds:["Open ≈ Close (both at 120) — virtually no real body","Wicks on both sides: H=127, L=113 — neither side won","Pure indecision — trading direction from the next candle only","After uptrend = potential top; after downtrend = potential bottom"],
+ entry:"Next confirmed candle's close in the breakout direction",sl:"Doji high ₹127 (if short) / Doji low ₹113 (if long)",tgt:"Next S/R level in confirmed direction | Min 1.5:1",
+ rt:"Trade at close of next decisive candle immediately",ra:"Wait for 2 consecutive confirmation candles first",
+ calcNote:"Neutral — direction from next candle. If bullish: SL=L, Entry=C. If bearish: SL=H, Entry=C.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Scalp","T2 — Partial","T3 — S/R target","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"spin",n:"Spinning Top",cat:"single",dir:"n",prior:"Any trend — after prolonged move",rel:50,tf:["Daily"],
+ cs:[[119,126,112,121,"n"]],
+ ohlc:[["O","119"],["H","126"],["L","112"],["C","121"]],
+ conds:["Small body (119–121) with roughly equal wicks on both sides","Neither bulls nor bears in clear control of the session","More meaningful after a prolonged, sustained trend move","Breakout above ₹126 or breakdown below ₹112 triggers the trade"],
+ entry:"Breakout above ₹126 or breakdown below ₹112 with volume",sl:"Opposite end of the full candle range",tgt:"Next S/R level in confirmed breakout direction",
+ rt:"Enter on the breakout candle's close if volume confirms",ra:"Enter only after the range is cleared and retested",
+ calcNote:"Neutral — If bullish breakout: SL=L, Entry=C. If bearish: SL=H, Entry=C.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Scalp","T2 — Partial","T3 — S/R target","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"ddoji",n:"Dragonfly Doji",cat:"single",dir:"b",prior:"Downtrend + near support",rel:60,tf:["Daily"],
+ cs:[[100,100,91,100,"b"]],
+ ohlc:[["O","100"],["H","100"],["L","91"],["C","100"]],
+ conds:["Open = Close = High (100) — absolutely no upper wick","Long lower wick to ₹91: sellers pushed hard and were fully rejected","Buyers fought all the way back and closed at the session high","Volume spike + proximity to support zone = very high conviction"],
+ entry:"Above ₹100 (pattern high and close)",sl:"Below ₹91 (wick low)",tgt:"Prior resistance above | Min 1:1 R:R",
+ rt:"Buy at candle close ₹100 same session",ra:"Buy only after next bullish candle closes above ₹100",
+ calcNote:"SL = your LOW input.  Entry = your CLOSE input (= HIGH here).",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial book","T3 — Prior resistance","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"gdoji",n:"Gravestone Doji",cat:"single",dir:"r",prior:"Uptrend + near resistance",rel:60,tf:["Daily"],
+ cs:[[100,110,100,100,"r"]],
+ ohlc:[["O","100"],["H","110"],["L","100"],["C","100"]],
+ conds:["Open = Close = Low (100) — absolutely no lower wick","Long upper wick to ₹110: buyers pushed hard and were fully rejected","Sellers crushed the entire rally and closed at the session low","Especially powerful near all-time highs or key resistance zones"],
+ entry:"Below ₹100 (pattern low and close)",sl:"Above ₹110 (wick high)",tgt:"Next support below | Min 1:1 R:R",
+ rt:"Short at candle close ₹100 same session",ra:"Short only after next red candle closes below ₹100",
+ calcNote:"SL = your HIGH input.  Entry = your CLOSE input (= LOW here).",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial book","T3 — Next support","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"beng",n:"Bullish Engulfing",cat:"multi",dir:"b",prior:"Downtrend",rel:63,tf:["4H","Daily"],
+ cs:[[110,112,104,105,"r"],[103,115,102,113,"b"]],
+ ohlc:[["D1 O","110"],["D1 C","105"],["D2 O","103"],["D2 C","113"]],
+ conds:["D1: red candle continuing the downtrend","D2 opens at ₹103 — below D1 close ₹105 (gap down)","D2 closes at ₹113 — above D1 open ₹110 (body fully engulfed)","Higher volume on D2 than D1 confirms the shift in control"],
+ entry:"D2 close ₹113 or break above D2 high ₹115",sl:"Below D2 low ₹102 (pattern low)",tgt:"Next resistance | Min 1:2 R:R",
+ rt:"Buy at D2 close ₹113 same session",ra:"Buy D3 only if it opens above ₹113 with a gap-up",
+ calcNote:"Enter D2 values. SL = D2 LOW.  Entry = D2 CLOSE.",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — Quick exit","T2 — Half position","T3 — Prior resistance","T4 — Full reversal target"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"bren",n:"Bearish Engulfing",cat:"multi",dir:"r",prior:"Uptrend",rel:79,tf:["4H","Daily"],
+ cs:[[100,108,99,107,"b"],[109,111,98,99,"r"]],
+ ohlc:[["D1 O","100"],["D1 C","107"],["D2 O","109"],["D2 C","99"]],
+ conds:["D1: green candle continuing the uptrend","D2 opens at ₹109 — above D1 close ₹107 (gap up)","D2 closes at ₹99 — below D1 open ₹100 (body fully engulfed)","Most reliable 2-candle bearish pattern at 79% win rate"],
+ entry:"D2 close ₹99 or break below D2 low ₹98",sl:"Above D2 high ₹111 (pattern high)",tgt:"Next support | Min 1:2 R:R",
+ rt:"Short at D2 close ₹99 same session",ra:"Short D3 only if it opens below ₹99 with a gap-down",
+ calcNote:"Enter D2 values. SL = D2 HIGH.  Entry = D2 CLOSE.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Quick exit","T2 — Half position","T3 — Prior support","T4 — Full reversal target"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"bhar",n:"Bullish Harami",cat:"multi",dir:"b",prior:"Downtrend",rel:53,tf:["Daily"],
+ cs:[[110,111,100,101,"r"],[103,107,102,106,"b"]],
+ ohlc:[["D1 O","110"],["D1 C","101"],["D2 O","103"],["D2 C","106"]],
+ conds:["D1: large red candle (₹110 to ₹101) in downtrend","D2: small green body (₹103–₹106) fully inside D1 range","Selling momentum slowing — not a confirmed reversal yet","53% reliability — do not trade without RSI divergence + volume"],
+ entry:"Break above D1 open ₹110 (the key level)",sl:"Below D1 low ₹100",tgt:"Next resistance | Tight target due to low reliability",
+ rt:"Buy at D2 close ₹106 with a tight stop",ra:"Buy only after D3 closes above ₹110 with strong volume",
+ calcNote:"Enter D2 values. SL = D2 LOW.  Entry = D2 CLOSE.",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial","T3 — D1 open level","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,2.5]},
+
+{id:"bhar2",n:"Bearish Harami",cat:"multi",dir:"r",prior:"Uptrend",rel:47,tf:["Daily"],
+ cs:[[100,112,99,110,"b"],[107,109,104,105,"r"]],
+ ohlc:[["D1 O","100"],["D1 C","110"],["D2 O","107"],["D2 C","105"]],
+ conds:["D1: large green candle (₹100 to ₹110) in uptrend","D2: small red body (₹105–₹107) fully inside D1 range","Buying momentum weakening — not a confirmed reversal","Weakest bearish multi-candle (47%) — never trade without filters"],
+ entry:"Break below D1 open ₹100 (the key level)",sl:"Above D1 high ₹112",tgt:"Next support | Tight target due to low reliability",
+ rt:"Short at D2 close ₹105 with a very tight stop",ra:"Short only after D3 closes below ₹100 with strong volume",
+ calcNote:"Enter D2 values. SL = D2 HIGH.  Entry = D2 CLOSE.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial","T3 — D1 open level","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,2.5]},
+
+{id:"pp",n:"Piercing Pattern",cat:"multi",dir:"b",prior:"Downtrend",rel:64,tf:["Daily"],
+ cs:[[112,113,104,105,"r"],[103,112,102,110,"b"]],
+ ohlc:[["D1 O","112"],["D1 C","105"],["D2 O","103"],["D2 C","110"]],
+ conds:["D1: strong red candle in established downtrend","D2 opens at ₹103 — gaps below D1 low (₹104)","D2 closes ₹110 — above D1 midpoint (108.5) — the key requirement","Strong buying reversed the gap-down and crossed the midpoint"],
+ entry:"D2 close ₹110",sl:"Below D2 low ₹102",tgt:"D1 open ₹112 first target | Prior resistance beyond",
+ rt:"Buy at D2 close ₹110",ra:"Buy next candle only if it holds and closes above ₹110",
+ calcNote:"Enter D2 values. SL = D2 LOW.  Entry = D2 CLOSE.",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — D1 midpoint","T2 — D1 open level","T3 — Prior resistance","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"dcc",n:"Dark Cloud Cover",cat:"multi",dir:"r",prior:"Uptrend",rel:60,tf:["Daily"],
+ cs:[[100,111,99,110,"b"],[112,113,100,104,"r"]],
+ ohlc:[["D1 O","100"],["D1 C","110"],["D2 O","112"],["D2 C","104"]],
+ conds:["D1: strong green candle in established uptrend","D2 opens at ₹112 — gaps above D1 high (₹111)","D2 closes ₹104 — below D1 midpoint (₹105) — the key requirement","Sellers overwhelmed the gap-up and crossed the midpoint"],
+ entry:"D2 close ₹104",sl:"Above D2 high ₹113",tgt:"D1 open ₹100 first target | Prior support beyond",
+ rt:"Short at D2 close ₹104",ra:"Short next candle only if it continues downward",
+ calcNote:"Enter D2 values. SL = D2 HIGH.  Entry = D2 CLOSE.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — D1 midpoint","T2 — D1 open level","T3 — Prior support","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"ms",n:"Morning Star",cat:"multi",dir:"b",prior:"Downtrend",rel:78,tf:["Daily","Weekly"],
+ cs:[[110,111,101,102,"r"],[100,104,98,101,"n"],[102,112,101,110,"b"]],
+ ohlc:[["D1 C","102"],["D2 Low","98"],["D3 O","102"],["D3 C","110"]],
+ conds:["D1: long red candle — bears fully in control of the session","D2: small star gaps below D1 at ₹98–₹104 — pure indecision zone","D3: green candle closes ₹110, above D1 midpoint (₹106)","One of the most reliable bullish reversals — 78% success rate"],
+ entry:"D3 close ₹110",sl:"Below D2 low ₹98 (the star candle's low)",tgt:"Prior swing high | Min 2:1 R:R",
+ rt:"Buy at D3 close ₹110",ra:"Buy D4 open only if upward momentum sustains with volume",
+ calcNote:"Enter D3 values. SL = D2 low (enter in LOW field). Entry = D3 CLOSE.",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — Quick exit","T2 — Half position","T3 — Prior swing high","T4 — Full target / trail"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"es",n:"Evening Star",cat:"multi",dir:"r",prior:"Uptrend",rel:72,tf:["Daily","Weekly"],
+ cs:[[100,111,99,110,"b"],[112,115,111,113,"n"],[112,113,101,102,"r"]],
+ ohlc:[["D1 C","110"],["D2 High","115"],["D3 O","112"],["D3 C","102"]],
+ conds:["D1: long green candle — bulls fully in control of the session","D2: small star gaps above D1 at ₹111–₹115 — pure indecision zone","D3: red candle closes ₹102, below D1 midpoint (₹105)","Highly reliable 3-candle top reversal — 72% success rate"],
+ entry:"D3 close ₹102",sl:"Above D2 high ₹115 (the star candle's high)",tgt:"Prior swing low | Min 2:1 R:R",
+ rt:"Short at D3 close ₹102",ra:"Short D4 open only if downward momentum sustains",
+ calcNote:"Enter D3 values. SL = D2 high (enter in HIGH field). Entry = D3 CLOSE.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Quick exit","T2 — Half position","T3 — Prior swing low","T4 — Full target / trail"],
+ tgtRR:[0.8,1.5,2,3]},
+
+{id:"tws",n:"Three White Soldiers",cat:"multi",dir:"b",prior:"Downtrend / Basing",rel:82,tf:["Daily"],
+ cs:[[100,108,99,107,"b"],[104,113,103,112,"b"],[109,118,108,117,"b"]],
+ ohlc:[["D1 C","107"],["D2 C","112"],["D3 O","109"],["D3 C","117"]],
+ conds:["3 consecutive green candles, each closing higher than the last","Each opens within the prior candle's body — no runaway gaps","Each closes near its own high with minimal upper wicks","Highest reliability of all bullish patterns — 82% win rate"],
+ entry:"Break above D3 high ₹118",sl:"Below D1 low ₹99 (full 3-candle pattern low)",tgt:"Major resistance | Min 3:1 R:R | Trail after T2",
+ rt:"Buy at D3 close ₹117",ra:"Buy on confirmed break above D3 high ₹118 with strong volume",
+ calcNote:"Enter D3 values. SL = D1 low (enter in LOW field). Entry = D3 CLOSE.",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — 1:1 Quick","T2 — 1.5:1 Partial","T3 — 2:1 Standard","T4 — 3:1 Full / trail SL"],
+ tgtRR:[1,1.5,2,3]},
+
+{id:"tbc",n:"Three Black Crows",cat:"multi",dir:"r",prior:"Uptrend / Topping",rel:78,tf:["Daily"],
+ cs:[[118,119,110,111,"r"],[114,115,106,107,"r"],[110,111,102,103,"r"]],
+ ohlc:[["D1 C","111"],["D2 C","107"],["D3 O","110"],["D3 C","103"]],
+ conds:["3 consecutive red candles, each closing lower than the last","Each opens within the prior candle's body — methodical decline","Each closes near its own low with minimal lower wicks","Strong signal preceding sharp drops — 78% reliability"],
+ entry:"Break below D3 low ₹102",sl:"Above D1 high ₹119 (full 3-candle pattern high)",tgt:"Major support | Min 3:1 R:R | Trail after T2",
+ rt:"Short at D3 close ₹103",ra:"Short on confirmed break below ₹102 with strong volume",
+ calcNote:"Enter D3 values. SL = D1 high (enter in HIGH field). Entry = D3 CLOSE.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — 1:1 Quick","T2 — 1.5:1 Partial","T3 — 2:1 Standard","T4 — 3:1 Full / trail SL"],
+ tgtRR:[1,1.5,2,3]},
+
+{id:"twb",n:"Tweezer Bottom",cat:"multi",dir:"b",prior:"Downtrend",rel:48,tf:["Daily"],
+ cs:[[105,107,96,103,"r"],[100,107,96,104,"b"]],
+ ohlc:[["D1 O","105"],["D1 C","103"],["D2 O","100"],["D2 C","104"]],
+ conds:["D1 and D2 share the exact same low (₹96) — twin price floor","D1 bearish followed by D2 bullish at the identical price level","Buyers defended ₹96 on two separate trading sessions","Very low reliability (48%) — needs RSI divergence + volume spike"],
+ entry:"Break above pattern high ₹107",sl:"Below shared low ₹96",tgt:"Next resistance above | Tight target due to low reliability",
+ rt:"Buy at D2 close ₹104",ra:"Buy only on breakout above ₹107 with strong volume",
+ calcNote:"Enter D2 values. SL = shared LOW (enter in LOW field). Entry = D2 CLOSE.",
+ slSrc:"L",entrySrc:"C",tgtDir:1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial","T3 — Prior resistance","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,2.5]},
+
+{id:"twt",n:"Tweezer Top",cat:"multi",dir:"r",prior:"Uptrend",rel:44,tf:["Daily"],
+ cs:[[100,112,99,110,"b"],[112,112,103,105,"r"]],
+ ohlc:[["D1 O","100"],["D1 C","110"],["D2 O","112"],["D2 C","105"]],
+ conds:["D1 and D2 share the exact same high (₹112) — twin price ceiling","D1 bullish followed by D2 bearish at the identical price level","Sellers rejected ₹112 on two separate trading sessions","Very low reliability (44%) — needs RSI divergence + volume spike"],
+ entry:"Break below pattern low ₹99",sl:"Above shared high ₹112",tgt:"Next support below | Tight target due to low reliability",
+ rt:"Short at D2 close ₹105",ra:"Short only on breakdown below ₹99 with strong volume",
+ calcNote:"Enter D2 values. SL = shared HIGH (enter in HIGH field). Entry = D2 CLOSE.",
+ slSrc:"H",entrySrc:"C",tgtDir:-1,
+ tgtLabels:["T1 — Quick exit","T2 — Partial","T3 — Prior support","T4 — Extended"],
+ tgtRR:[0.8,1.5,2,2.5]}
+];
+
+var catF="all",dirF="all",srtD=false;
+function relColor(r){return r>=70?"#5fce7f":r>=57?"#d4ad4a":"#f06472"}
+
+function mkCard(p){
+  var dc=p.dir==="b"?"bull":p.dir==="r"?"bear":"neut";
+  var dlab=p.dir==="b"?"BULLISH":p.dir==="r"?"BEARISH":"NEUTRAL";
+  var cbg=p.dir==="b"?"bgb":p.dir==="r"?"bgr":"bgn";
+  var catbg=p.cat==="single"?"bgs1":"bgm";
+  var catlab=p.cat==="single"?"SINGLE":"MULTI";
+  var rc=relColor(p.rel);
+  var ohlcH=p.ohlc.map(function(o){return "<div class='oc'><span class='ol'>"+o[0]+"</span><span class='ov'>&#8377;"+o[1]+"</span></div>";}).join("");
+  var condsH=p.conds.map(function(c){return "<li>"+c+"</li>";}).join("");
+  var tfH=p.tf.map(function(t){return "<span class='tfb'>"+t+"</span>";}).join("");
+  var rowCls=["t1-row","t2-row","t3-row","t4-row"];
+  var tgtRowsH=p.tgtLabels.map(function(lbl,i){
+    var rr=p.tgtRR[i];
+    return "<div class='res-row "+rowCls[i]+"'>"+
+      "<div class='res-left'><span class='res-tag'>"+lbl+"</span><span class='res-desc'>1:"+rr+" R:R &nbsp;|&nbsp; gain: <span id='tg-desc-"+p.id+"-"+i+"'>—</span></span></div>"+
+      "<div><span class='res-val' id='tv-"+p.id+"-"+i+"'>—</span></div>"+
+    "</div>";
+  }).join("");
+
+  var front="<div class='cf c"+dc+"'>"+
+    "<div class='ftop'>"+
+    "<div class='bgs'><span class='bg "+cbg+"'>"+dlab+"</span><span class='bg "+catbg+"'>"+catlab+"</span></div>"+
+    "<div class='cname'>"+p.n+"</div>"+
+    "<div class='prior'>Prior: "+p.prior+"</div>"+
+    "</div>"+
+    "<div class='fmid'>"+buildSVG(p.cs)+"<div class='ohlc'>"+ohlcH+"</div></div>"+
+    "<div class='fbot'>"+
+    "<div class='rrow'><span class='rlbl'>RELIABILITY</span><span class='rpct' style='color:"+rc+"'>"+p.rel+"%</span></div>"+
+    "<div class='rbar'><div class='rbar-fill' style='width:"+p.rel+"%;background:"+rc+"'></div></div>"+
+    "<div class='fhint'>tap to reveal full trade setup &rsaquo;</div>"+
+    "</div></div>";
+
+  var back="<div class='cf cb c"+dc+"'>"+
+    "<div class='blbl'>Conditions to confirm</div>"+
+    "<ul class='clist'>"+condsH+"</ul>"+
+    "<div class='blbl'>Trade setup</div>"+
+    "<div class='sgrid'>"+
+    "<div class='sc sc-e'><span class='sclbl'>ENTRY</span><span class='scval'>"+p.entry+"</span></div>"+
+    "<div class='sc sc-s'><span class='sclbl'>STOP LOSS</span><span class='scval'>"+p.sl+"</span></div>"+
+    "<div class='sc sc-t'><span class='sclbl'>TARGETS</span><span class='scval'>"+p.tgt+"</span></div>"+
+    "</div>"+
+    "<div class='blbl'>Risk profile</div>"+
+    "<div class='rgrid'>"+
+    "<div class='rc rct'><span class='rclbl'>&#9650; Risk Taker</span><span class='rcval'>"+p.rt+"</span></div>"+
+    "<div class='rc rca'><span class='rclbl'>&#9670; Risk Averse</span><span class='rcval'>"+p.ra+"</span></div>"+
+    "</div>"+
+    "<div class='blbl'>Best timeframe</div><div class='tfs'>"+tfH+"</div>"+
+    "<div class='blbl'>Live Target Calculator</div>"+
+    "<div class='calc no-flip'>"+
+    "<div class='calc-hdr'>Enter this candle's OHLC values</div>"+
+    "<div class='calc-note'>"+p.calcNote+"</div>"+
+    "<div class='inp-row'>"+
+    "<div class='inp-wrap'><label>OPEN</label><input class='cinp no-flip' type='number' id='ci-O-"+p.id+"' placeholder='0.00'></div>"+
+    "<div class='inp-wrap'><label>HIGH</label><input class='cinp no-flip' type='number' id='ci-H-"+p.id+"' placeholder='0.00'></div>"+
+    "<div class='inp-wrap'><label>LOW</label><input class='cinp no-flip' type='number' id='ci-L-"+p.id+"' placeholder='0.00'></div>"+
+    "<div class='inp-wrap'><label>CLOSE</label><input class='cinp no-flip' type='number' id='ci-C-"+p.id+"' placeholder='0.00'></div>"+
+    "</div>"+
+    "<button class='cbtn no-flip' onclick='doCalc(event,\""+p.id+"\")'>CALCULATE STOP LOSS &amp; TARGETS</button>"+
+    "<div class='cres' id='cres-"+p.id+"'>"+
+    "<div class='res-section'>"+
+    "<div class='res-section-lbl'>Your Trade</div>"+
+    "<div class='res-row entry-row'><div class='res-left'><span class='res-tag'>ENTRY PRICE</span><span class='res-desc' id='en-desc-"+p.id+"'>—</span></div><span class='res-val' id='ev-"+p.id+"'>—</span></div>"+
+    "<div class='res-row sl-row'><div class='res-left'><span class='res-tag'>STOP LOSS</span><span class='res-desc' id='sl-desc-"+p.id+"'>—</span></div><span class='res-val' id='slv-"+p.id+"'>—</span></div>"+
+    "</div>"+
+    "<div class='res-section'>"+
+    "<div class='res-section-lbl'>Target Options</div>"+
+    tgtRowsH+
+    "</div></div></div>"+
+    "<div class='bkhint'>&lsaquo; tap anywhere outside the calculator to flip back</div>"+
+    "</div>";
+
+  return "<div class='card' data-id='"+p.id+"' data-cat='"+p.cat+"' data-dir='"+p.dir+"'>"+
+         "<div class='ci'>"+front+back+"</div></div>";
+}
+
+function doCalc(e,pid){
+  e.stopPropagation();
+  var p=P.find(function(x){return x.id===pid;});
+  if(!p)return;
+  var O=parseFloat(document.getElementById("ci-O-"+pid).value);
+  var H=parseFloat(document.getElementById("ci-H-"+pid).value);
+  var L=parseFloat(document.getElementById("ci-L-"+pid).value);
+  var C=parseFloat(document.getElementById("ci-C-"+pid).value);
+  if([O,H,L,C].some(isNaN)){alert("Please enter all 4 values (O, H, L, C)");return;}
+  var entry=p.entrySrc==="C"?C:p.entrySrc==="H"?H:L;
+  var sl=p.slSrc==="H"?H:L;
+  var risk=Math.abs(entry-sl);
+  if(risk<=0){alert("Entry and SL cannot be the same price.");return;}
+  var res=document.getElementById("cres-"+pid);
+  res.style.display="flex";
+  document.getElementById("ev-"+pid).textContent="₹"+entry.toFixed(2);
+  document.getElementById("en-desc-"+pid).textContent="from "+p.entrySrc+" &nbsp;|&nbsp; risk ₹"+risk.toFixed(2)+" ("+((risk/entry)*100).toFixed(2)+"%)";
+  document.getElementById("slv-"+pid).textContent="₹"+sl.toFixed(2);
+  document.getElementById("sl-desc-"+pid).textContent="from "+p.slSrc+" &nbsp;|&nbsp; distance ₹"+risk.toFixed(2);
+  p.tgtRR.forEach(function(rr,i){
+    var tgt=p.tgtDir===1?entry+risk*rr:entry-risk*rr;
+    var gain=Math.abs(tgt-entry);
+    document.getElementById("tv-"+pid+"-"+i).textContent="₹"+tgt.toFixed(2);
+    document.getElementById("tg-desc-"+pid+"-"+i).textContent="₹"+gain.toFixed(2);
+  });
+}
+
+function render(){
+  var q=document.getElementById("search").value.toLowerCase().trim();
+  var data=P.filter(function(p){
+    return(catF==="all"||p.cat===catF)&&
+           (dirF==="all"||p.dir===dirF)&&
+           (!q||p.n.toLowerCase().includes(q)||p.prior.toLowerCase().includes(q));
+  });
+  if(srtD)data.sort(function(a,b){return b.rel-a.rel;});
+  var bulls=data.filter(function(p){return p.dir==="b";}).length;
+  var bears=data.filter(function(p){return p.dir==="r";}).length;
+  var neuts=data.filter(function(p){return p.dir==="n";}).length;
+  document.getElementById("statbar").innerHTML=
+    "<span class='si'><span class='sdot' style='background:#34a853'></span>"+bulls+" bullish</span>"+
+    "<span class='si'><span class='sdot' style='background:#dc3545'></span>"+bears+" bearish</span>"+
+    "<span class='si'><span class='sdot' style='background:#c9a840'></span>"+neuts+" neutral</span>"+
+    "<span class='si-count'>"+data.length+" / "+P.length+" patterns</span>";
+  var g=document.getElementById("grid");
+  if(!data.length){g.innerHTML="<div class='nores'>No patterns match.</div>";return;}
+  g.innerHTML=data.map(mkCard).join("");
+  g.querySelectorAll(".card").forEach(function(cd){
+    cd.addEventListener("click",function(e){
+      if(e.target.closest(".no-flip"))return;
+      cd.classList.toggle("flipped");
+    });
+  });
+  g.querySelectorAll(".cinp,.cbtn").forEach(function(el){
+    el.addEventListener("click",function(e){e.stopPropagation();});
+    if(el.tagName==="INPUT"){
+      el.addEventListener("keydown",function(e){
+        e.stopPropagation();
+        if(e.key==="Enter"){var id=el.id.replace(/^ci-[OHLC]-/,"");doCalc(e,id);}
+      });
+    }
+  });
+}
+
+document.getElementById("ctrl").addEventListener("click",function(e){
+  var b=e.target.closest(".btn");
+  if(!b||b.id==="srt")return;
+  if(b.dataset.cat!==undefined){
+    document.querySelectorAll("[data-cat]").forEach(function(x){x.className="btn";});
+    b.className="btn on-all";catF=b.dataset.cat;
+  }
+  if(b.dataset.dir!==undefined){
+    document.querySelectorAll("[data-dir]").forEach(function(x){x.className="btn";});
+    var cls=b.dataset.dir==="b"?"on-bull":b.dataset.dir==="r"?"on-bear":b.dataset.dir==="n"?"on-neut":"on-all";
+    b.className="btn "+cls;dirF=b.dataset.dir;
+  }
+  render();
+});
+document.getElementById("srt").addEventListener("click",function(){
+  srtD=!srtD;
+  this.textContent=srtD?"SORT BY RELIABILITY \u25B2":"SORT BY RELIABILITY \u25BC";
+  this.className=srtD?"btn on-sort":"btn";
+  render();
+});
+document.getElementById("search").addEventListener("input",render);
+render();
+</script>
+</body>
+</html>
