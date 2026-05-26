@@ -3,7 +3,7 @@
 An interactive dark-themed flashcard reference for 22 candlestick patterns.
 Built for paper trading study and quick market reference.
 
-## 🔗 [Open Live Reference → https://kavu-7.github.io/candlestick-reference/
+## 🔗 [Open Live Reference →] https://kavu-7.github.io/candlestick-reference/
 
 ## Features
 - 22 patterns — single & multi candle, fully categorised
